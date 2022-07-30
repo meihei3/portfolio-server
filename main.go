@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
+	"text/template"
 	"time"
 )
 
@@ -15,6 +15,10 @@ const (
 var (
 	frontendContentsPath = "./local" // 本番環境では`-ldflags`フラグで上書きする
 )
+
+type Option struct {
+	CSPNonce string
+}
 
 func main() {
 	http.HandleFunc("/", indexHandler)
@@ -36,16 +40,14 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f, err := os.Open(frontendContentsPath + "/index.html")
+	t, err := template.ParseFiles(frontendContentsPath + "/index.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	d, err := f.Stat()
+	err = t.Execute(w, Option{CSPNonce: "test"})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	http.ServeContent(w, r, frontendContentsPath+"/index.html", d.ModTime(), f)
 }
