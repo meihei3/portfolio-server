@@ -1,11 +1,17 @@
 package main
 
 import (
+	crand "crypto/rand"
 	"fmt"
 	"log"
+	"math"
+	"math/big"
+	"math/rand"
 	"net/http"
 	"text/template"
 	"time"
+
+	"github.com/meihei3/portfolio-server/lib"
 )
 
 const (
@@ -21,6 +27,9 @@ type Option struct {
 }
 
 func main() {
+	seed, _ := crand.Int(crand.Reader, big.NewInt(math.MaxInt64))
+	rand.Seed(seed.Int64()) // math/rand は seed 値が固定なので、生成する必要がある。
+
 	http.HandleFunc("/", indexHandler)
 
 	log.Println("start server")
@@ -45,7 +54,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	err = t.Execute(w, Option{CSPNonce: "test"})
+	err = t.Execute(w, Option{CSPNonce: lib.GenerateRandomStr(32)})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
