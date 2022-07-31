@@ -77,7 +77,7 @@ func main() {
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		http.NotFound(w, r)
+		notFoundHandler(w, r)
 		return
 	}
 
@@ -105,6 +105,26 @@ func privacyPolicyHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Security-Policy", fmt.Sprintf("%v", c))
 
 	t, err := template.ParseFiles(frontendContentsPath + "/privacy-policy/index.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = t.Execute(w, Option{CSPNonce: nonce})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func notFoundHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(404)
+
+	nonce := lib.GenerateRandomStr(32)
+	c := makeCSPHeader()
+	c.ScriptSRC = append(c.ScriptSRC, fmt.Sprintf("'nonce-%s'", nonce))
+	w.Header().Add("Content-Security-Policy", fmt.Sprintf("%v", c))
+
+	t, err := template.ParseFiles(frontendContentsPath + "/404.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
