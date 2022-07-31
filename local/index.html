@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <head>
+    <script nonce="{{ .CSPNonce }}">
+        console.log("ok");
+    </script>
 </head>
 <body>
-    <h1>Hello {{ .CSPNonce }}</h1>
+    <h1>Hello World</h1>
 </body>
 </html>
