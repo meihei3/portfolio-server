@@ -3,13 +3,13 @@ package main
 import (
 	crand "crypto/rand"
 	"fmt"
+	"html/template"
 	"log"
 	"math"
 	"math/big"
 	"math/rand"
 	"net/http"
 	"strings"
-	"text/template"
 
 	"github.com/meihei3/portfolio-server/lib"
 )
