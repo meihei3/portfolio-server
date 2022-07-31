@@ -63,6 +63,7 @@ func main() {
 	seed, _ := crand.Int(crand.Reader, big.NewInt(math.MaxInt64))
 	rand.Seed(seed.Int64()) // math/rand は seed 値が固定なので、生成する必要がある。
 
+	http.HandleFunc("/privacy-policy/", privacyPolicyHandler)
 	http.HandleFunc("/", indexHandler)
 
 	log.Println("start server")
@@ -76,7 +77,7 @@ func main() {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("time:%s remote_ip:%s host:%s method:%s uri:%s", time.Now().Format(time.RFC3339), r.RemoteAddr, r.Host, r.Method, r.URL)
+	log.Printf("method:indexHandler time:%s remote_ip:%s host:%s method:%s uri:%s", time.Now().Format(time.RFC3339), r.RemoteAddr, r.Host, r.Method, r.URL)
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
@@ -88,6 +89,26 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Security-Policy", fmt.Sprintf("%v", c))
 
 	t, err := template.ParseFiles(frontendContentsPath + "/index.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = t.Execute(w, Option{CSPNonce: nonce})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func privacyPolicyHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("method:privacyPolicyHandler time:%s remote_ip:%s host:%s method:%s uri:%s", time.Now().Format(time.RFC3339), r.RemoteAddr, r.Host, r.Method, r.URL)
+
+	nonce := lib.GenerateRandomStr(32)
+	c := makeCSPHeader()
+	c.ScriptSRC = append(c.ScriptSRC, fmt.Sprintf("'nonce-%s'", nonce))
+	w.Header().Add("Content-Security-Policy", fmt.Sprintf("%v", c))
+
+	t, err := template.ParseFiles(frontendContentsPath + "/privacy-policy/index.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
