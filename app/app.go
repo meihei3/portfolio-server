@@ -56,6 +56,8 @@ func (a *App) resolve() func(w http.ResponseWriter, r *http.Request) {
 			a.router.Index(w, r, a.Config)
 		} else if r.URL.Path == "/privacy-policy/" {
 			a.router.PrivacyPolicy(w, r, a.Config)
+		} else if r.URL.Path == "/sitemap.xml" {
+			a.router.OpenStaticFile(w, r, a.Config, "sitemap.xml")
 		} else {
 			a.router.NotFound(w, r, a.Config)
 		}

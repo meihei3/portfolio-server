@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 
 	"github.com/meihei3/portfolio-server/lib"
 )
@@ -11,6 +12,7 @@ import (
 type RouterInterface interface {
 	Index(w http.ResponseWriter, req *http.Request, cnf *Config)
 	PrivacyPolicy(w http.ResponseWriter, req *http.Request, cnf *Config)
+	OpenStaticFile(w http.ResponseWriter, req *http.Request, cnf *Config, fn string)
 	NotFound(w http.ResponseWriter, req *http.Request, cnf *Config)
 }
 
@@ -50,6 +52,22 @@ func (r *Router) PrivacyPolicy(w http.ResponseWriter, req *http.Request, cnf *Co
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (r *Router) OpenStaticFile(w http.ResponseWriter, req *http.Request, cnf *Config, fn string) {
+	// Routerで存在するファイルだけを呼び出す。
+	f, err := os.Open(cnf.FrontendContentsPath + "/" + fn)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	d, err := f.Stat()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.ServeContent(w, req, cnf.FrontendContentsPath+"/"+fn, d.ModTime(), f)
 }
 
 func (r *Router) NotFound(w http.ResponseWriter, req *http.Request, cnf *Config) {
