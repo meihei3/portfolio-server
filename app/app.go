@@ -16,7 +16,7 @@ func WithFrontendContentsPathConfig(p string) *Config {
 	return &Config{
 		ServerHost:           "localhost",
 		ServerPort:           8080,
-		FrontendContentsPath: "./local",
+		FrontendContentsPath: p,
 	}
 }
 
@@ -52,10 +52,14 @@ func (a *App) Run() error {
 
 func (a *App) resolve() func(w http.ResponseWriter, r *http.Request) {
 	resolve := func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" {
+		if r.Method == "GET" && r.URL.Path == "/" {
 			a.router.Index(w, r, a.Config)
-		} else if r.URL.Path == "/privacy-policy/" {
+		} else if r.Method == "GET" && r.URL.Path == "/privacy-policy/" {
 			a.router.PrivacyPolicy(w, r, a.Config)
+		} else if r.Method == "GET" && r.URL.Path == "/sitemap.xml" {
+			a.router.OpenStaticFile(w, r, a.Config, "sitemap.xml")
+		} else if r.Method == "GET" && r.URL.Path == "/robots.txt" {
+			a.router.OpenStaticFile(w, r, a.Config, "robots.txt")
 		} else {
 			a.router.NotFound(w, r, a.Config)
 		}
