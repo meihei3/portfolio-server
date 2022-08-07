@@ -16,7 +16,7 @@ func WithFrontendContentsPathConfig(p string) *Config {
 	return &Config{
 		ServerHost:           "localhost",
 		ServerPort:           8080,
-		FrontendContentsPath: "./local",
+		FrontendContentsPath: p,
 	}
 }
 
